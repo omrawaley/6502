@@ -1,0 +1,1 @@
+/usr/bin/clang  -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/6502.dir/src/test/main.c.o CMakeFiles/6502.dir/src/test/emulator.c.o CMakeFiles/6502.dir/src/lib/cpu.c.o -o bin/6502  /opt/local/lib/libcurses.dylib /opt/local/lib/libform.dylib 

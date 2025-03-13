@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.css": "tailwindcss",
+        "emulator.h": "c"
+    }
+}
