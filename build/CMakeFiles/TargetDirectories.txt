@@ -1,3 +1,0 @@
-/Users/om/C/6502/build/CMakeFiles/6502.dir
-/Users/om/C/6502/build/CMakeFiles/edit_cache.dir
-/Users/om/C/6502/build/CMakeFiles/rebuild_cache.dir
