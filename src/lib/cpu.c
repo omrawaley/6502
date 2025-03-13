@@ -611,7 +611,6 @@ static instr_t opcode_table[NUM_MAX_OPCODES] = {
     {.exec_instruction = and, .addr_mode = ABSOLUTE_X, .cycles = 4},        //0x3D
     {.exec_instruction = rol, .addr_mode = ABSOLUTE_X, .cycles = 7},        //0x3E
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x3F
-
     {.exec_instruction = rti, .addr_mode = IMPLICIT, .cycles = 6},          //0x40
     {.exec_instruction = eor, .addr_mode = INDEXED_INDIRECT, .cycles = 6},  //0x41
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x42
