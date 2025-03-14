@@ -1,6 +1,8 @@
 #include "emulator.h"
 
-#include <stdio.h>
+#include <unistd.h>
+
+#define CYCLES_PER_SECOND 1790000 // 1.79 MHz
 
 static inline u8 mem_read_byte(u8* mem, const u16 addr) {
     return mem[addr];
@@ -29,10 +31,28 @@ void emulator_init(emulator_t* emulator) {
 void emulator_load(emulator_t* emulator, const char* path) {
     FILE* file = fopen(path, "rb");
 
+    if(!file) {
+        fprintf(stderr, "Error opening file");
+    }
+
+    fseek(file, 0, SEEK_END);
     size_t size = ftell(file);
     rewind(file);
 
     if(fread(emulator->mem, sizeof(u8), MEM_SIZE, file) != size) {
         fprintf(stderr, "Error reading program");
     }
+
+    fclose(file);
+}
+
+void emulator_run(emulator_t* emulator) {
+    for(u32 i = 0; i < CYCLES_PER_SECOND; ++i) {
+        cpu_clock(&emulator->cpu);
+
+        // if(i % 1000000 == 0)
+            // printf("%u ", emulator->cpu.a);
+    }
+    
+    sleep(1);
 }
