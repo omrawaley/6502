@@ -4,6 +4,7 @@
 #define MEM_SIZE 0x10000
 
 #include <stdio.h>
+#include <memory.h>
 
 #include "../lib/cpu.h"
 
