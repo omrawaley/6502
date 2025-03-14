@@ -215,13 +215,22 @@ static void and(cpu_t* cpu) {
     cpu->sr.n = cpu->a & MSB;
 }
 
-static void asl(cpu_t* cpu) {
+static void asl_acc(cpu_t* cpu) {
     cpu->sr.c = cpu->a & MSB;
 
     cpu->a <<= 1;
 
     cpu->sr.z = cpu->a == 0;
     cpu->sr.n = cpu->a & MSB;
+}
+
+static void asl(cpu_t* cpu) {
+    cpu->sr.c = val & MSB;
+
+    cpu->write_bus(cpu->bus, addr, val << 1);
+
+    cpu->sr.z = (val << 1) == 0;
+    cpu->sr.n = (val << 1) & MSB;
 }
 
 static void bcc(cpu_t* cpu) {
@@ -557,7 +566,7 @@ static instr_t opcode_table[NUM_MAX_OPCODES] = {
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x07
     {.exec_instruction = php, .addr_mode = IMPLICIT, .cycles = 3},          //0x08
     {.exec_instruction = ora, .addr_mode = IMMEDIATE, .cycles = 2},         //0x09
-    {.exec_instruction = asl, .addr_mode = ACCUMULATOR, .cycles = 2},       //0x0A
+    {.exec_instruction = asl_acc, .addr_mode = ACCUMULATOR, .cycles = 2},       //0x0A
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x0B
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x0C
     {.exec_instruction = ora, .addr_mode = ABSOLUTE, .cycles = 4},          //0x0D
