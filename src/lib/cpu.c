@@ -48,7 +48,7 @@ typedef struct instr {
 // UTILITY FUNCTIONS
 // =================================================================================
 
-static inline _Bool cpu_is_complete(cpu_t* cpu) {
+_Bool cpu_is_complete(cpu_t* cpu) {
     return cycles == 0;
 }
 

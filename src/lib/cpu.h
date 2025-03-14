@@ -25,7 +25,7 @@ typedef struct cpu {
 
 void cpu_clock(cpu_t* cpu);
 
-static inline _Bool cpu_is_complete(cpu_t* cpu);
+_Bool cpu_is_complete(cpu_t* cpu);
 
 void cpu_reset(cpu_t* cpu);
 void cpu_irq(cpu_t* cpu);
