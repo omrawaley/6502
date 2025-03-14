@@ -26,6 +26,11 @@ void emulator_init(emulator_t* emulator) {
     emulator->cpu.bus = emulator;
     emulator->cpu.read_bus = &emulator_read_bus;
     emulator->cpu.write_bus = &emulator_write_bus;
+
+    emulator->cpu.write_bus(emulator->cpu.bus, RST_START, 0x00);
+    emulator->cpu.write_bus(emulator->cpu.bus, RST_START + 1, 0xC0);    // Start CPU at 0xC000 (for nestest)
+
+    cpu_reset(&emulator->cpu);  // Trigger reset interrupt
 }
 
 void emulator_load(emulator_t* emulator, const char* path) {

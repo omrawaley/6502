@@ -3,14 +3,7 @@
 #define STACK_START 0x0100
 #define STACK_END 0x01FF
 
-#define SP_START STACK_END & 0x0F
-
-#define NMI_START 0xFFFA
-// #define NMI_END 0xFFFB
-#define RST_START 0xFFFC
-// #define RST_END 0xFFFD
-#define IRQ_START 0xFFFE
-// #define IRQ_END 0xFFFF
+#define SP_START STACK_END & 0xFF
 
 #define NUM_MAX_OPCODES 256
 
