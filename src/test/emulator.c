@@ -47,12 +47,12 @@ void emulator_load(emulator_t* emulator, const char* path) {
 }
 
 void emulator_run(emulator_t* emulator) {
-    for(size_t i = 0; i < CYCLES_PER_SECOND; ++i) {
+    // for(size_t i = 0; i < CYCLES_PER_SECOND; ++i) {
         cpu_clock(&emulator->cpu);
 
-        if(i % 1000 == 0)
-            printf("%u ", emulator->cpu.a);
-    }
+        // if(i % 1000 == 0)
+            // printf("%u ", emulator->cpu.a);
+    // }
     
-    sleep(1);
+    // sleep(1);
 }
