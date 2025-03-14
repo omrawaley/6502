@@ -407,13 +407,22 @@ static void ldy(cpu_t* cpu) {
     cpu->sr.n = cpu->y & MSB;
 }
 
-static void lsr(cpu_t* cpu) {
+static void lsr_acc(cpu_t* cpu) {
     cpu->sr.c = cpu->a & LSB;
 
     cpu->a >>= 1;
 
     cpu->sr.z = cpu->a == 0;
     cpu->sr.n = cpu->a & MSB;
+}
+
+static void lsr(cpu_t* cpu) {
+    cpu->sr.c = val & LSB;
+
+    cpu->write_bus(cpu->bus, addr, val >> 1);
+
+    cpu->sr.z = (val >> 1) == 0;
+    cpu->sr.n = (val >> 1) & MSB;
 }
 
 static void nop(cpu_t* cpu) {};
@@ -444,7 +453,7 @@ static void plp(cpu_t* cpu) {
     cpu_pop_status(cpu);
 }
 
-static void rol(cpu_t* cpu) {
+static void rol_acc(cpu_t* cpu) {
     const u1 old_carry = cpu->sr.c;
 
     cpu->sr.c = cpu->a & MSB;
@@ -455,7 +464,18 @@ static void rol(cpu_t* cpu) {
     cpu->sr.n = cpu->a & MSB;
 }
 
-static void ror(cpu_t* cpu) {
+static void rol(cpu_t* cpu) {
+    const u1 old_carry = cpu->sr.c;
+
+    cpu->sr.c = val & MSB;
+
+    cpu->write_bus(cpu->bus, addr, (val << 1) | old_carry);
+
+    cpu->sr.z = ((val << 1) | old_carry) == 0;
+    cpu->sr.n = ((val << 1) | old_carry) & MSB;
+}
+
+static void ror_acc(cpu_t* cpu) {
     const u1 old_carry = cpu->sr.c;
 
     cpu->sr.c = cpu->a & LSB;
@@ -464,6 +484,17 @@ static void ror(cpu_t* cpu) {
 
     cpu->sr.z = cpu->a == 0;
     cpu->sr.n = cpu->a & MSB;
+}
+
+static void ror(cpu_t* cpu) {
+    const u1 old_carry = cpu->sr.c;
+
+    cpu->sr.c = val & LSB;
+    
+    cpu->write_bus(cpu->bus, addr, (val >> 1) | (old_carry << 7));
+
+    cpu->sr.z = ((val >> 1) | (old_carry << 7)) == 0;
+    cpu->sr.n = ((val >> 1) | (old_carry << 7)) & MSB;
 }
 
 static void rti(cpu_t* cpu) {
@@ -566,7 +597,7 @@ static instr_t opcode_table[NUM_MAX_OPCODES] = {
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x07
     {.exec_instruction = php, .addr_mode = IMPLICIT, .cycles = 3},          //0x08
     {.exec_instruction = ora, .addr_mode = IMMEDIATE, .cycles = 2},         //0x09
-    {.exec_instruction = asl_acc, .addr_mode = ACCUMULATOR, .cycles = 2},       //0x0A
+    {.exec_instruction = asl_acc, .addr_mode = ACCUMULATOR, .cycles = 2},   //0x0A
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x0B
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x0C
     {.exec_instruction = ora, .addr_mode = ABSOLUTE, .cycles = 4},          //0x0D
@@ -598,7 +629,7 @@ static instr_t opcode_table[NUM_MAX_OPCODES] = {
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x27
     {.exec_instruction = plp, .addr_mode = IMPLICIT, .cycles = 4},          //0x28
     {.exec_instruction = and, .addr_mode = IMMEDIATE, .cycles = 2},         //0x29
-    {.exec_instruction = rol, .addr_mode = ACCUMULATOR, .cycles = 2},       //0x2A
+    {.exec_instruction = rol_acc, .addr_mode = ACCUMULATOR, .cycles = 2},   //0x2A
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x2B
     {.exec_instruction = bit, .addr_mode = ABSOLUTE, .cycles = 4},          //0x2C
     {.exec_instruction = and, .addr_mode = ABSOLUTE, .cycles = 4},          //0x2D
@@ -630,7 +661,7 @@ static instr_t opcode_table[NUM_MAX_OPCODES] = {
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x47
     {.exec_instruction = pha, .addr_mode = IMPLICIT, .cycles = 3},          //0x48
     {.exec_instruction = eor, .addr_mode = IMMEDIATE, .cycles = 2},         //0x49
-    {.exec_instruction = lsr, .addr_mode = ACCUMULATOR, .cycles = 2},       //0x4A
+    {.exec_instruction = lsr_acc, .addr_mode = ACCUMULATOR, .cycles = 2},   //0x4A
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x4B
     {.exec_instruction = jmp, .addr_mode = ABSOLUTE, .cycles = 3},          //0x4C
     {.exec_instruction = eor, .addr_mode = ABSOLUTE, .cycles = 4},          //0x4D
@@ -662,7 +693,7 @@ static instr_t opcode_table[NUM_MAX_OPCODES] = {
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x67
     {.exec_instruction = pla, .addr_mode = IMPLICIT, .cycles = 4},          //0x68
     {.exec_instruction = adc, .addr_mode = IMMEDIATE, .cycles = 2},         //0x69
-    {.exec_instruction = ror, .addr_mode = ACCUMULATOR, .cycles = 2},       //0x6A
+    {.exec_instruction = ror_acc, .addr_mode = ACCUMULATOR, .cycles = 2},   //0x6A
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x6B
     {.exec_instruction = jmp, .addr_mode = INDIRECT, .cycles = 5},          //0x6C
     {.exec_instruction = adc, .addr_mode = ABSOLUTE, .cycles = 4},          //0x6D
