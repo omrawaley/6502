@@ -29,9 +29,10 @@ void emulator_init(emulator_t* emulator) {
 
     memset(emulator->mem, 0, MEM_SIZE);
 
-    // emulator->cpu.write_bus(emulator->cpu.bus, RST_START, 0x00);
-    // emulator->cpu.write_bus(emulator->cpu.bus, RST_START + 1, 0xC0);    // Start CPU at 0xC000 (for nestest)
-    // cpu_reset(&emulator->cpu);  // Trigger reset interrupt
+    emulator->cpu.write_bus(emulator->cpu.bus, RST_START, 0x00);
+    emulator->cpu.write_bus(emulator->cpu.bus, RST_START + 1, 0xC0);
+
+    cpu_reset(&emulator->cpu);
 }
 
 void emulator_load(emulator_t* emulator, const char* path) {
@@ -45,19 +46,33 @@ void emulator_load(emulator_t* emulator, const char* path) {
     size_t size = ftell(file);
     rewind(file);
 
-    if(fread(emulator->mem, sizeof(u8), MEM_SIZE, file) != size) {
+    if(fread(emulator->mem + 0xC000, sizeof(u8), MEM_SIZE, file) != size) {
         fprintf(stderr, "Error reading program");
+        fclose(file);
+        return;
     }
 
-    fclose(file);
+    fseek(file, 0x10, SEEK_SET);
+
+    // == NESTEST ==
+
+    // size_t size = 0x4000;
+    // u8 buf[0x4000];
+    // if (fread(buf, sizeof(u8), size, file) != size) {
+    //     fprintf(stderr, "Error reading program");
+    //     fclose(file);
+    //     return;
+    // }
+
+    // memcpy(emulator->mem + 0x8000, buf, size);
+    // memcpy(emulator->mem + 0xC000, buf, size);
+
+    // fclose(file);
 }
 
 void emulator_run(emulator_t* emulator) {
     // for(size_t i = 0; i < CYCLES_PER_SECOND; ++i) {
         cpu_clock(&emulator->cpu);
-
-        // if(i % 1000 == 0)
-            // printf("%u ", emulator->cpu.a);
     // }
     
     // sleep(1);

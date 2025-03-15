@@ -2,8 +2,8 @@
 
 #include "emulator.h"
 
-#define RAM_COLS 0x10
-#define RAM_ROWS 32
+#define MEM_COLS 0x10
+#define MEM_ROWS 32
 
 void draw_cpu(emulator_t* emulator) {
     printw("-- CPU --\n");
@@ -14,13 +14,13 @@ void draw_cpu(emulator_t* emulator) {
     printw("PC: %X\n", emulator->cpu.pc);
 }
 
-void draw_ram(emulator_t* emulator) {
-    u16 addr;
+void draw_mem(emulator_t* emulator) {
+    u16 addr = 0x0000;
 
     printw("-- MEM --\n");
-    for(size_t y = 0; y < RAM_ROWS; ++y) {
+    for(size_t y = 0; y < MEM_ROWS; ++y) {
         printw("%04X: ", addr);
-        for(size_t x = 0; x < RAM_COLS; ++x) {
+        for(size_t x = 0; x < MEM_COLS; ++x) {
             printw("%02X ", emulator->mem[addr]);
             ++addr;
         }
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
         clear();
 
         draw_cpu(&emulator);
-        draw_ram(&emulator);
+        draw_mem(&emulator);
 
         refresh();
 
@@ -61,6 +61,6 @@ int main(int argc, char* argv[]) {
     }
 
     endwin();
-
+    
     return 0;
 }

@@ -3,7 +3,7 @@
 #define STACK_START 0x0100
 #define STACK_END 0x01FF
 
-#define SP_START STACK_END & 0xFF
+#define SP_START 0xFD
 
 #define NUM_MAX_OPCODES 256
 
@@ -60,11 +60,13 @@ static inline u16 cpu_fetch_word(cpu_t* cpu) {
 }
 
 static inline void cpu_push(cpu_t* cpu, u8 byte) {
-    cpu->write_bus(cpu->bus, STACK_START + cpu->sp--, byte);
+    cpu->write_bus(cpu->bus, STACK_START + cpu->sp, byte);
+    --cpu->sp;
 }
 
 static inline u8 cpu_pop(cpu_t* cpu) {
-    return cpu->read_bus(cpu->bus, STACK_START + ++cpu->sp);
+    ++cpu->sp;
+    return cpu->read_bus(cpu->bus, STACK_START + cpu->sp);
 }
 
 static inline void cpu_push_status(cpu_t* cpu) {
