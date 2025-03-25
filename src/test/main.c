@@ -7,7 +7,7 @@
 #define MEM_ROWS 32
 
 void test_opcode(emulator_t* emulator, u16 test_idx) {
-    FILE* file = fopen("SingleStepTests/02.json", "r");
+    FILE* file = fopen("SingleStepTests/05.json", "r");
 
     if (!file) {
         fprintf(stderr, "Error opening file\n");
@@ -57,6 +57,9 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
     cJSON* initial_x = cJSON_GetObjectItem(initial, "x");
     cJSON* initial_y = cJSON_GetObjectItem(initial, "y");
 
+    cJSON* initial_ram_array = cJSON_GetObjectItem(initial, "ram");
+    cJSON* initial_ram_element = NULL;
+
     cJSON* final = cJSON_GetObjectItem(test, "final");
     if (!final) {
         fprintf(stderr, "Error getting final item\n");
@@ -70,9 +73,8 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
     cJSON* final_x = cJSON_GetObjectItem(final, "x");
     cJSON* final_y = cJSON_GetObjectItem(final, "y");
 
-    do {
-        emulator_run(emulator);
-    } while(!cpu_is_complete(&emulator->cpu));
+    cJSON* final_ram_array = cJSON_GetObjectItem(final, "ram");
+    cJSON* final_ram_element = NULL;
 
     emulator->cpu.pc = initial_pc->valueint;
     emulator->cpu.sp = initial_sp->valueint;
@@ -81,8 +83,37 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
     emulator->cpu.x = initial_x->valueint;
     emulator->cpu.y = initial_y->valueint;
 
-    if(emulator->cpu.pc != final_pc->valueint || emulator->cpu.sp != final_sp->valueint || (emulator->cpu.sr.n << 7) | (emulator->cpu.sr.v << 6) | (1 << 5) | (1 << 4) | (emulator->cpu.sr.d << 3) | (emulator->cpu.sr.i << 2) | (emulator->cpu.sr.z << 1) | (emulator->cpu.sr.c) != final_sr->valueint || emulator->cpu.a != initial_a->valueint || emulator->cpu.x != initial_x->valueint || emulator->cpu.y != initial_y->valueint) {
-        printf("Test failed :(\n");
+    cJSON_ArrayForEach(initial_ram_element, initial_ram_array) {
+        cJSON* addr = cJSON_GetArrayItem(initial_ram_element, 0);
+        cJSON* val = cJSON_GetArrayItem(initial_ram_element, 1);
+
+        emulator->cpu.write_bus(emulator->cpu.bus, addr->valueint, val->valueint);
+    }
+
+    // ISSUE SEEMS TO BE NEEDING TO RUN 2 INSTRUCTIONS TO GET TO FINAL STATE
+    do {
+        emulator_run(emulator);
+    } while(!cpu_is_complete(&emulator->cpu));
+
+    do {
+        emulator_run(emulator);
+    } while(!cpu_is_complete(&emulator->cpu));
+
+    // ISSUE IS WITH CPU_GET_STATUS
+    if((emulator->cpu.pc != final_pc->valueint) || (emulator->cpu.sp != final_sp->valueint) || (cpu_get_status(&emulator->cpu) != final_sr->valueint) || (emulator->cpu.a != final_a->valueint) || (emulator->cpu.x != final_x->valueint) || (emulator->cpu.y != final_y->valueint)) {
+        printf("Test failed!\n");
+    }
+    else {
+        printf("Test passed!\n");
+    }
+
+    cJSON_ArrayForEach(final_ram_element, final_ram_array) {
+        cJSON* addr = cJSON_GetArrayItem(final_ram_element, 0);
+        cJSON* val = cJSON_GetArrayItem(final_ram_element, 1);
+
+        if(emulator->cpu.read_bus(emulator->cpu.bus, addr->valueint) != val->valueint) {
+            printf("Test failed!\n");
+        }
     }
 
     end:
@@ -123,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     test_opcode(&emulator, 0);
 
-    // initscr();
+    initscr();
     noecho();
 
     while(1) {
