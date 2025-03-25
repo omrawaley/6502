@@ -70,7 +70,7 @@ static inline u8 cpu_pop(cpu_t* cpu) {
 }
 
 static inline void cpu_push_status(cpu_t* cpu) {
-    cpu_push(cpu, cpu_get_status(cpu));
+    cpu_push(cpu, cpu_get_status(cpu) | 0b00010000);
 }
 
 static inline void cpu_pop_status(cpu_t* cpu) {
@@ -90,7 +90,7 @@ void cpu_reset(cpu_t* cpu) {
     cpu->sr.z = 0;
     cpu->sr.i = 0;
     cpu->sr.d = 0;
-    cpu->sr.b = 0;
+    // cpu->sr.b = 0;
     cpu->sr.v = 0;
     cpu->sr.n = 0;
 
@@ -266,8 +266,6 @@ static void brk(cpu_t* cpu) {
     cpu_push_status(cpu);
 
     cpu->pc = cpu_read_word_from_bus(cpu, IRQ_START);
-
-    cpu->sr.b = 1;
 }
 
 static void bvc(cpu_t* cpu) {
@@ -851,11 +849,11 @@ void cpu_set_status(cpu_t* cpu, u8 byte) {
     cpu->sr.z = (byte & 0x2) >> 1;
     cpu->sr.i = (byte & 0x4) >> 2;
     cpu->sr.d = (byte & 0x8) >> 3;
-    cpu->sr.b = (byte & 0x10) >> 4;
+    // cpu->sr.b = (byte & 0x10) >> 4;
     cpu->sr.v = (byte & 0x40) >> 6;
     cpu->sr.n = (byte & MSB) >> 7;
 }
 
 u8 cpu_get_status(cpu_t* cpu) {
-    return (cpu->sr.n << 7) | (cpu->sr.v << 6) | (1 << 5) | (1 << 4) | (cpu->sr.d << 3) | (cpu->sr.i << 2) | (cpu->sr.z << 1) | (cpu->sr.c);
+    return (cpu->sr.n << 7) | (cpu->sr.v << 6) | (1 << 5) /*| (0 << 4)*/ | (cpu->sr.d << 3) | (cpu->sr.i << 2) | (cpu->sr.z << 1) | (cpu->sr.c);
 }

@@ -78,7 +78,7 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
 
     emulator->cpu.pc = initial_pc->valueint;
     emulator->cpu.sp = initial_sp->valueint;
-    emulator->cpu.pc = initial_pc->valueint;
+    cpu_set_status(&emulator->cpu, initial_sr->valueint);
     emulator->cpu.a = initial_a->valueint;
     emulator->cpu.x = initial_x->valueint;
     emulator->cpu.y = initial_y->valueint;
@@ -123,6 +123,7 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
 
 void draw_cpu(emulator_t* emulator) {
     printw("-- CPU --\n");
+    printw("F: %X\n", cpu_get_status(&emulator->cpu));
     printw("A: %X\n", emulator->cpu.a);
     printw("X: %X\n", emulator->cpu.x);
     printw("Y: %X\n", emulator->cpu.y);
