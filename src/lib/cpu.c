@@ -70,19 +70,11 @@ static inline u8 cpu_pop(cpu_t* cpu) {
 }
 
 static inline void cpu_push_status(cpu_t* cpu) {
-    cpu_push(cpu, (cpu->sr.n << 7) | (cpu->sr.v << 6) | (1 << 5) | (1 << 4) | (cpu->sr.d << 3) | (cpu->sr.i << 2) | (cpu->sr.z << 1) | (cpu->sr.c));
+    cpu_push(cpu, cpu_get_status(cpu));
 }
 
 static inline void cpu_pop_status(cpu_t* cpu) {
-    const u8 status_byte = cpu_pop(cpu);
-
-    cpu->sr.c = status_byte & 0x1;
-    cpu->sr.z = (status_byte & 0x2) >> 1;
-    cpu->sr.i = (status_byte & 0x4) >> 2;
-    cpu->sr.d = (status_byte & 0x8) >> 3;
-    cpu->sr.b = (status_byte & 0x10) >> 4;
-    cpu->sr.v = (status_byte & 0x40) >> 6;
-    cpu->sr.n = (status_byte & MSB) >> 7;
+    cpu_set_status(cpu, cpu_pop(cpu));
 }
 
 // =================================================================================
@@ -582,7 +574,7 @@ static void tya(cpu_t* cpu) {
 // =================================================================================
 
 static instr_t opcode_table[NUM_MAX_OPCODES] = {
-    {.exec_instruction = brk, .addr_mode = IMPLICIT, .cycles = 7},          //0x00        
+    {.exec_instruction = brk, .addr_mode = IMPLICIT, .cycles = 7},          //0x00 
     {.exec_instruction = ora, .addr_mode = INDEXED_INDIRECT, .cycles = 6},  //0x01
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x02
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0x03
@@ -852,4 +844,18 @@ void cpu_clock(cpu_t* cpu) {
     }
 
     cycles--;
+}
+
+void cpu_set_status(cpu_t* cpu, u8 byte) {
+    cpu->sr.c = byte & 0x1;
+    cpu->sr.z = (byte & 0x2) >> 1;
+    cpu->sr.i = (byte & 0x4) >> 2;
+    cpu->sr.d = (byte & 0x8) >> 3;
+    cpu->sr.b = (byte & 0x10) >> 4;
+    cpu->sr.v = (byte & 0x40) >> 6;
+    cpu->sr.n = (byte & MSB) >> 7;
+}
+
+u8 cpu_get_status(cpu_t* cpu) {
+    return (cpu->sr.n << 7) | (cpu->sr.v << 6) | (1 << 5) | (1 << 4) | (cpu->sr.d << 3) | (cpu->sr.i << 2) | (cpu->sr.z << 1) | (cpu->sr.c);
 }
