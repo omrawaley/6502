@@ -133,17 +133,20 @@ void test_opcode_all(emulator_t* emulator, const char* path) {
 
 // Test all opcodes with a single test each
 void test_all_opcodes(emulator_t* emulator) {
+    FILE* file = fopen("logs/log.txt", "w+");
+    
     char path[32];
-
-    for(u8 i = 0; i < 0xFF; ++i)
+    for(u16 i = 0; i <= 0xFF; i++)
     {
         snprintf(path, 32, "SingleStepTests/%02x.json", i);
 
-        _Bool res = test_opcode_single(emulator, path, i);
+        _Bool res = test_opcode_single(emulator, path, (u16)i);
 
-        printf("%X: ", i);
-        res ? printf("PASS\n") : printf("FAIL\n");
+        fprintf(file, "%X: ", i);
+        res ? fprintf(file, "PASS\n") : fprintf(file, "FAIL\n");
     }
+
+    fclose(file);
 }
 
 void draw_cpu(emulator_t* emulator) {
@@ -180,7 +183,7 @@ int main(int argc, char* argv[]) {
 
     test_all_opcodes(&emulator);
 
-    // initscr();
+    initscr();
     noecho();
 
     u16 addr = 0x0000;
