@@ -29,8 +29,8 @@ void emulator_init(emulator_t* emulator) {
 
     memset(emulator->mem, 0, MEM_SIZE);
 
-    emulator->cpu.write_bus(emulator->cpu.bus, RST_START, 0x00);
-    emulator->cpu.write_bus(emulator->cpu.bus, RST_START + 1, 0xC0);
+    // emulator->cpu.write_bus(emulator->cpu.bus, RST_START, 0x00);
+    // emulator->cpu.write_bus(emulator->cpu.bus, RST_START + 1, 0xC0);
 
     cpu_reset(&emulator->cpu);
 }

@@ -129,6 +129,30 @@ depend:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/6502.dir/build.make CMakeFiles/6502.dir/build
 .PHONY : 6502/fast
 
+deps/cjson/cJSON.o: deps/cjson/cJSON.c.o
+.PHONY : deps/cjson/cJSON.o
+
+# target to build an object file
+deps/cjson/cJSON.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/6502.dir/build.make CMakeFiles/6502.dir/deps/cjson/cJSON.c.o
+.PHONY : deps/cjson/cJSON.c.o
+
+deps/cjson/cJSON.i: deps/cjson/cJSON.c.i
+.PHONY : deps/cjson/cJSON.i
+
+# target to preprocess a source file
+deps/cjson/cJSON.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/6502.dir/build.make CMakeFiles/6502.dir/deps/cjson/cJSON.c.i
+.PHONY : deps/cjson/cJSON.c.i
+
+deps/cjson/cJSON.s: deps/cjson/cJSON.c.s
+.PHONY : deps/cjson/cJSON.s
+
+# target to generate assembly for a file
+deps/cjson/cJSON.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/6502.dir/build.make CMakeFiles/6502.dir/deps/cjson/cJSON.c.s
+.PHONY : deps/cjson/cJSON.c.s
+
 src/lib/cpu.o: src/lib/cpu.c.o
 .PHONY : src/lib/cpu.o
 
@@ -210,6 +234,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... 6502"
+	@echo "... deps/cjson/cJSON.o"
+	@echo "... deps/cjson/cJSON.i"
+	@echo "... deps/cjson/cJSON.s"
 	@echo "... src/lib/cpu.o"
 	@echo "... src/lib/cpu.i"
 	@echo "... src/lib/cpu.s"
