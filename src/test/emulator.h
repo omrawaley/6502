@@ -13,6 +13,7 @@ typedef struct emulator {
     u8 mem[MEM_SIZE];
 } emulator_t;
 
+void emulator_reset(emulator_t* emulator);
 void emulator_init(emulator_t* emulator);
 
 void emulator_load(emulator_t* emulator, const char* path);

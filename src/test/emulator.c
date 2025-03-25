@@ -22,17 +22,20 @@ static void emulator_write_bus(void* ctx, const u16 addr, const u8 val) {
     mem_write_byte(emulator->mem, addr, val);
 }
 
+void emulator_reset(emulator_t* emulator) {
+    memset(emulator->mem, 0, MEM_SIZE);
+    cpu_reset(&emulator->cpu);
+}
+
 void emulator_init(emulator_t* emulator) {
     emulator->cpu.bus = emulator;
     emulator->cpu.read_bus = &emulator_read_bus;
     emulator->cpu.write_bus = &emulator_write_bus;
 
-    memset(emulator->mem, 0, MEM_SIZE);
+    emulator_reset(emulator);
 
     // emulator->cpu.write_bus(emulator->cpu.bus, RST_START, 0x00);
     // emulator->cpu.write_bus(emulator->cpu.bus, RST_START + 1, 0xC0);
-
-    cpu_reset(&emulator->cpu);
 }
 
 void emulator_load(emulator_t* emulator, const char* path) {

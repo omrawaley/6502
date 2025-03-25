@@ -8,12 +8,13 @@
 
 #define MEM_SCROLL_SPEED 8
 
-void test_opcode(emulator_t* emulator, u16 test_idx) {
-    FILE* file = fopen("SingleStepTests/05.json", "r");
+// Test an opcode with only one test, specified by index
+_Bool test_opcode_single(emulator_t* emulator, const char* path, u16 test_idx) {
+    FILE* file = fopen(path, "r");
 
     if (!file) {
         fprintf(stderr, "Error opening file\n");
-        return;
+        return false;
     }
 
     fseek(file, 0, SEEK_END);
@@ -24,7 +25,7 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
     if (!buf) {
         fprintf(stderr, "Memory allocation failed\n");
         fclose(file);
-        return;
+        return false;
     }
 
     fread(buf, 1, size, file);
@@ -35,7 +36,7 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
     if (root == NULL) {
         fprintf(stderr, "Error parsing buffer\n");
         free(buf);
-        return;
+        return false;
     }
 
     free(buf);
@@ -43,13 +44,15 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
     cJSON* test = cJSON_GetArrayItem(root, test_idx);
     if (!test) {
         fprintf(stderr, "Error getting test item\n");
-        goto end;
+        cJSON_Delete(root);
+        return false;
     }
 
     cJSON* initial = cJSON_GetObjectItem(test, "initial");
     if (!initial) {
         fprintf(stderr, "Error getting initial item\n");
-        goto end;
+        cJSON_Delete(root);
+        return false;
     }
 
     cJSON* initial_pc = cJSON_GetObjectItem(initial, "pc");
@@ -65,7 +68,8 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
     cJSON* final = cJSON_GetObjectItem(test, "final");
     if (!final) {
         fprintf(stderr, "Error getting final item\n");
-        goto end;
+        cJSON_Delete(root);
+        return false;
     }
 
     cJSON* final_pc = cJSON_GetObjectItem(final, "pc");
@@ -77,6 +81,8 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
 
     cJSON* final_ram_array = cJSON_GetObjectItem(final, "ram");
     cJSON* final_ram_element = NULL;
+
+    emulator_reset(emulator);
 
     emulator->cpu.pc = initial_pc->valueint;
     emulator->cpu.sp = initial_sp->valueint;
@@ -101,12 +107,8 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
         emulator_run(emulator);
     } while(!cpu_is_complete(&emulator->cpu));
 
-    // ISSUE IS WITH CPU_GET_STATUS
     if((emulator->cpu.pc != final_pc->valueint) || (emulator->cpu.sp != final_sp->valueint) || (cpu_get_status(&emulator->cpu) != final_sr->valueint) || (emulator->cpu.a != final_a->valueint) || (emulator->cpu.x != final_x->valueint) || (emulator->cpu.y != final_y->valueint)) {
-        printf("Test failed!\n");
-    }
-    else {
-        printf("Test passed!\n");
+        return false;
     }
 
     cJSON_ArrayForEach(final_ram_element, final_ram_array) {
@@ -114,13 +116,34 @@ void test_opcode(emulator_t* emulator, u16 test_idx) {
         cJSON* val = cJSON_GetArrayItem(final_ram_element, 1);
 
         if(emulator->cpu.read_bus(emulator->cpu.bus, addr->valueint) != val->valueint) {
-            printf("Test failed!\n");
+            return false;
         }
     }
 
-    end:
+    return true;
+}
 
-    cJSON_Delete(root);
+// Test a single opcode with all 10,000 tests
+void test_opcode_all(emulator_t* emulator, const char* path) {
+    for(u16 i; i < 10000; ++i) {
+        _Bool res = test_opcode_single(emulator, path, i);
+        res == true ? printf("Test PASSED!\n") : printf("Test FAILED!\n");
+    }
+}
+
+// Test all opcodes with a single test each
+void test_all_opcodes(emulator_t* emulator) {
+    char path[32];
+
+    for(u8 i = 0; i < 0xFF; ++i)
+    {
+        snprintf(path, 32, "SingleStepTests/%02x.json", i);
+
+        _Bool res = test_opcode_single(emulator, path, i);
+
+        printf("%X: ", i);
+        res ? printf("PASS\n") : printf("FAIL\n");
+    }
 }
 
 void draw_cpu(emulator_t* emulator) {
@@ -155,9 +178,9 @@ int main(int argc, char* argv[]) {
     if(argc > 1)
         emulator_load(&emulator, argv[0]);
 
-    test_opcode(&emulator, 0);
+    test_all_opcodes(&emulator);
 
-    initscr();
+    // initscr();
     noecho();
 
     u16 addr = 0x0000;
