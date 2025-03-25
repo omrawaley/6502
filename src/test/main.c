@@ -6,6 +6,8 @@
 #define MEM_COLS 0x10
 #define MEM_ROWS 32
 
+#define MEM_SCROLL_SPEED 8
+
 void test_opcode(emulator_t* emulator, u16 test_idx) {
     FILE* file = fopen("SingleStepTests/05.json", "r");
 
@@ -131,8 +133,8 @@ void draw_cpu(emulator_t* emulator) {
     printw("PC: %X\n", emulator->cpu.pc);
 }
 
-void draw_mem(emulator_t* emulator) {
-    u16 addr = 0x0000;
+void draw_mem(emulator_t* emulator, u16 base_addr) {
+    u16 addr = base_addr;
 
     printw("-- MEM --\n");
     for(size_t y = 0; y < MEM_ROWS; ++y) {
@@ -158,11 +160,13 @@ int main(int argc, char* argv[]) {
     initscr();
     noecho();
 
+    u16 addr = 0x0000;
+
     while(1) {
         clear();
 
         draw_cpu(&emulator);
-        draw_mem(&emulator);
+        draw_mem(&emulator, addr);
 
         refresh();
 
@@ -176,6 +180,18 @@ int main(int argc, char* argv[]) {
             do {
                 emulator_run(&emulator);
             } while(!cpu_is_complete(&emulator.cpu));
+        }
+
+        if(c == 'q') {
+            if(addr > 0) {
+                addr -= MEM_COLS * MEM_SCROLL_SPEED;
+            }
+        }
+
+        else if(c == 'e') {
+            if(addr < MEM_SIZE - (MEM_COLS * MEM_ROWS)) {
+                addr += MEM_COLS * MEM_SCROLL_SPEED;
+            }
         }
     }
 
