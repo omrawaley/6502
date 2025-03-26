@@ -15,4 +15,3 @@ bin
 .vscode
 .DS_Store
 SingleStepTests
-logs/log.txt
