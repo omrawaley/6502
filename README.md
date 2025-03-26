@@ -6,7 +6,7 @@ An NMOS 6502 emulator written in C99.
 - CPU and memory debugging
 - S to step clock
 - D to execute full instructon
-- Up/Down to scroll through memory viewer
+- Q/E to scroll through memory viewer
 - Supports [Single Step Tests](https://github.com/SingleStepTests/65x02/tree/main/6502) logging
 
 ## Single Step Tests
