@@ -69,6 +69,19 @@ static inline u8 cpu_pop(cpu_t* cpu) {
     return cpu->read_bus(cpu->bus, STACK_START + cpu->sp);
 }
 
+void cpu_set_status(cpu_t* cpu, u8 byte) {
+    cpu->sr.c = byte & 0x1;
+    cpu->sr.z = (byte & 0x2) >> 1;
+    cpu->sr.i = (byte & 0x4) >> 2;
+    cpu->sr.d = (byte & 0x8) >> 3;
+    cpu->sr.v = (byte & 0x40) >> 6;
+    cpu->sr.n = (byte & MSB) >> 7;
+}
+
+u8 cpu_get_status(cpu_t* cpu) {
+    return (cpu->sr.n << 7) | (cpu->sr.v << 6) | (1 << 5) | (cpu->sr.d << 3) | (cpu->sr.i << 2) | (cpu->sr.z << 1) | (cpu->sr.c);
+}
+
 static inline void cpu_push_status(cpu_t* cpu) {
     cpu_push(cpu, cpu_get_status(cpu) | 0b00010000);
 }
@@ -90,7 +103,6 @@ void cpu_reset(cpu_t* cpu) {
     cpu->sr.z = 0;
     cpu->sr.i = 0;
     cpu->sr.d = 0;
-    // cpu->sr.b = 0;
     cpu->sr.v = 0;
     cpu->sr.n = 0;
 
@@ -410,7 +422,9 @@ static void lsr(cpu_t* cpu) {
     cpu->sr.n = (val >> 1) & MSB;
 }
 
-static void nop(cpu_t* cpu) {};
+static void nop(cpu_t* cpu) {
+    ++cpu->pc;
+};
 
 static void ora(cpu_t* cpu) {
     cpu->a |= val;
@@ -830,6 +844,12 @@ static instr_t opcode_table[NUM_MAX_OPCODES] = {
     {.exec_instruction = nop, .addr_mode = IMPLICIT, .cycles = 2},          //0xFF
 };
 
+_Bool cpu_is_illegal(cpu_t* cpu) {
+    if(cycles == 0)
+        return opcode_table[cpu->read_bus(cpu->bus, cpu->pc)].exec_instruction == nop;
+    return 0;
+}
+
 void cpu_clock(cpu_t* cpu) {
     if(cycles == 0) {
         const u8 opcode = cpu_fetch_byte(cpu);
@@ -842,18 +862,4 @@ void cpu_clock(cpu_t* cpu) {
     }
 
     cycles--;
-}
-
-void cpu_set_status(cpu_t* cpu, u8 byte) {
-    cpu->sr.c = byte & 0x1;
-    cpu->sr.z = (byte & 0x2) >> 1;
-    cpu->sr.i = (byte & 0x4) >> 2;
-    cpu->sr.d = (byte & 0x8) >> 3;
-    // cpu->sr.b = (byte & 0x10) >> 4;
-    cpu->sr.v = (byte & 0x40) >> 6;
-    cpu->sr.n = (byte & MSB) >> 7;
-}
-
-u8 cpu_get_status(cpu_t* cpu) {
-    return (cpu->sr.n << 7) | (cpu->sr.v << 6) | (1 << 5) /*| (0 << 4)*/ | (cpu->sr.d << 3) | (cpu->sr.i << 2) | (cpu->sr.z << 1) | (cpu->sr.c);
 }

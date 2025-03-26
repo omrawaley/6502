@@ -20,7 +20,6 @@ typedef struct cpu {
         u1 z : 1;
         u1 i : 1;
         u1 d : 1;
-        // u1 b : 1;
         u1 v : 1;
         u1 n : 1;
     } sr;
@@ -33,6 +32,8 @@ typedef struct cpu {
 void cpu_clock(cpu_t* cpu);
 
 _Bool cpu_is_complete(cpu_t* cpu);
+
+_Bool cpu_is_illegal(cpu_t* cpu);
 
 void cpu_reset(cpu_t* cpu);
 void cpu_irq(cpu_t* cpu);

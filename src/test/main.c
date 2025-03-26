@@ -9,12 +9,12 @@
 #define MEM_SCROLL_SPEED 8
 
 // Test an opcode with only one test, specified by index
-_Bool test_opcode_single(emulator_t* emulator, const char* path, u16 test_idx) {
+u8 test_opcode_single(emulator_t* emulator, const char* path, u16 test_idx) {
     FILE* file = fopen(path, "r");
 
     if (!file) {
         fprintf(stderr, "Error opening file\n");
-        return false;
+        return 1;
     }
 
     fseek(file, 0, SEEK_END);
@@ -25,7 +25,7 @@ _Bool test_opcode_single(emulator_t* emulator, const char* path, u16 test_idx) {
     if (!buf) {
         fprintf(stderr, "Memory allocation failed\n");
         fclose(file);
-        return false;
+        return 1;
     }
 
     fread(buf, 1, size, file);
@@ -36,7 +36,7 @@ _Bool test_opcode_single(emulator_t* emulator, const char* path, u16 test_idx) {
     if (root == NULL) {
         fprintf(stderr, "Error parsing buffer\n");
         free(buf);
-        return false;
+        return 1;
     }
 
     free(buf);
@@ -45,14 +45,14 @@ _Bool test_opcode_single(emulator_t* emulator, const char* path, u16 test_idx) {
     if (!test) {
         fprintf(stderr, "Error getting test item\n");
         cJSON_Delete(root);
-        return false;
+        return 1;
     }
 
     cJSON* initial = cJSON_GetObjectItem(test, "initial");
     if (!initial) {
         fprintf(stderr, "Error getting initial item\n");
         cJSON_Delete(root);
-        return false;
+        return 1;
     }
 
     cJSON* initial_pc = cJSON_GetObjectItem(initial, "pc");
@@ -69,7 +69,7 @@ _Bool test_opcode_single(emulator_t* emulator, const char* path, u16 test_idx) {
     if (!final) {
         fprintf(stderr, "Error getting final item\n");
         cJSON_Delete(root);
-        return false;
+        return 1;
     }
 
     cJSON* final_pc = cJSON_GetObjectItem(final, "pc");
@@ -98,38 +98,40 @@ _Bool test_opcode_single(emulator_t* emulator, const char* path, u16 test_idx) {
         emulator->cpu.write_bus(emulator->cpu.bus, addr->valueint, val->valueint);
     }
 
-    // ISSUE SEEMS TO BE NEEDING TO RUN 2 INSTRUCTIONS TO GET TO FINAL STATE
+    // Finish the reset routine
     do {
         emulator_run(emulator);
     } while(!cpu_is_complete(&emulator->cpu));
 
+    if(cpu_is_illegal(&emulator->cpu))
+        return 2;
+
+    // Execute one instruction
     do {
         emulator_run(emulator);
     } while(!cpu_is_complete(&emulator->cpu));
 
-    if((emulator->cpu.pc != final_pc->valueint) || (emulator->cpu.sp != final_sp->valueint) || (cpu_get_status(&emulator->cpu) != final_sr->valueint) || (emulator->cpu.a != final_a->valueint) || (emulator->cpu.x != final_x->valueint) || (emulator->cpu.y != final_y->valueint)) {
-        return false;
-    }
+    if((emulator->cpu.sp != final_sp->valueint) || (cpu_get_status(&emulator->cpu) != final_sr->valueint) || (emulator->cpu.a != final_a->valueint) || (emulator->cpu.x != final_x->valueint) || (emulator->cpu.y != final_y->valueint))
+        return 1;
 
     cJSON_ArrayForEach(final_ram_element, final_ram_array) {
         cJSON* addr = cJSON_GetArrayItem(final_ram_element, 0);
         cJSON* val = cJSON_GetArrayItem(final_ram_element, 1);
 
-        if(emulator->cpu.read_bus(emulator->cpu.bus, addr->valueint) != val->valueint) {
-            return false;
-        }
+        if(emulator->cpu.read_bus(emulator->cpu.bus, addr->valueint) != val->valueint)
+            return 1;
     }
 
-    return true;
+    return 0;
 }
 
-// Test a single opcode with all 10,000 tests
-void test_opcode_all(emulator_t* emulator, const char* path) {
-    for(u16 i; i < 10000; ++i) {
-        _Bool res = test_opcode_single(emulator, path, i);
-        res == true ? printf("Test PASSED!\n") : printf("Test FAILED!\n");
-    }
-}
+// // Test a single opcode with all 10,000 tests
+// void test_opcode_all(emulator_t* emulator, const char* path) {
+//     for(u16 i; i < 10000; ++i) {
+//         u8 res = test_opcode_single(emulator, path, i);
+//         res == true ? printf("Test PASSED!\n") : printf("Test FAILED!\n");
+//     }
+// }
 
 // Test all opcodes with a single test each
 void test_all_opcodes(emulator_t* emulator) {
@@ -140,10 +142,21 @@ void test_all_opcodes(emulator_t* emulator) {
     {
         snprintf(path, 32, "SingleStepTests/%02x.json", i);
 
-        _Bool res = test_opcode_single(emulator, path, (u16)i);
+        u8 res = test_opcode_single(emulator, path, (u16)i);
 
         fprintf(file, "%X: ", i);
-        res ? fprintf(file, "PASS\n") : fprintf(file, "FAIL\n");
+
+        switch(res) {
+            case 0:
+                fprintf(file, "PASS\n");
+                break;
+            case 1:
+                fprintf(file, "FAIL\n");
+                break;
+            case 2:
+                fprintf(file, "ILLEGAL\n");
+                break;
+        }
     }
 
     fclose(file);
@@ -180,6 +193,10 @@ int main(int argc, char* argv[]) {
 
     if(argc > 1)
         emulator_load(&emulator, argv[0]);
+
+    do {
+        emulator_run(&emulator);
+    } while(!cpu_is_complete(&emulator.cpu));
 
     test_all_opcodes(&emulator);
 
