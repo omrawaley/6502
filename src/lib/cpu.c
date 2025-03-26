@@ -83,7 +83,7 @@ u8 cpu_get_status(cpu_t* cpu) {
 }
 
 static inline void cpu_push_status(cpu_t* cpu) {
-    cpu_push(cpu, cpu_get_status(cpu) | 0b00010000);
+    cpu_push(cpu, cpu_get_status(cpu) | 0x10);
 }
 
 static inline void cpu_pop_status(cpu_t* cpu) {
@@ -272,10 +272,12 @@ static void bpl(cpu_t* cpu) {
 
 static void brk(cpu_t* cpu) {
     ++cpu->pc;
+    cpu_push(cpu, cpu->pc >> 8);
     cpu_push(cpu, cpu->pc & 0xFF);
-    cpu_push(cpu, (cpu->pc >> 8) & 0xFF);
 
     cpu_push_status(cpu);
+
+    cpu->sr.i = 1;
 
     cpu->pc = cpu_read_word_from_bus(cpu, IRQ_START);
 }
