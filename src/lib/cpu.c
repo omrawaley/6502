@@ -97,6 +97,10 @@ u8 cpu_get_status(cpu_t* cpu) {
 }
 
 static inline void cpu_push_status(cpu_t* cpu) {
+    cpu_push(cpu, cpu_get_status(cpu));
+}
+
+static inline void cpu_push_status_b(cpu_t* cpu) {
     cpu_push(cpu, cpu_get_status(cpu) | 0x10);
 }
 
@@ -130,7 +134,7 @@ void cpu_irq(cpu_t* cpu) {
     cpu_push(cpu, cpu->pc & 0xFF);
     cpu_push(cpu, (cpu->pc >> 8) & 0xFF);
 
-    cpu_push_status(cpu);
+    cpu_push_status_b(cpu);
 
     cpu->pc = cpu_read_word_from_bus(cpu->bus, IRQ_START);
 
@@ -141,7 +145,7 @@ void cpu_nmi(cpu_t* cpu) {
     cpu_push(cpu, cpu->pc & 0xFF);
     cpu_push(cpu, (cpu->pc >> 8) & 0xFF);
 
-    cpu_push_status(cpu);
+    cpu_push_status_b(cpu);
 
     cpu->pc = cpu_read_word_from_bus(cpu->bus, NMI_START);
 
@@ -289,7 +293,7 @@ static void brk(cpu_t* cpu) {
     cpu_push(cpu, cpu->pc >> 8);
     cpu_push(cpu, cpu->pc & 0xFF);
 
-    cpu_push_status(cpu);
+    cpu_push_status_b(cpu);
 
     cpu->sr.i = 1;
 
@@ -454,7 +458,7 @@ static void pha(cpu_t* cpu) {
 }
 
 static void php(cpu_t* cpu) {
-    cpu_push_status(cpu);
+    cpu_push_status_b(cpu);
 }
 
 static void pla(cpu_t* cpu) {

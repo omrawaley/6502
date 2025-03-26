@@ -208,10 +208,6 @@ int main(int argc, char* argv[]) {
     if(argc > 1)
         emulator_load(&emulator, argv[0]);
 
-    do {
-        emulator_run(&emulator);
-    } while(!cpu_is_complete(&emulator.cpu));
-
     test_all_opcodes(&emulator);
 
     initscr();

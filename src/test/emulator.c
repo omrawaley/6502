@@ -46,10 +46,10 @@ void emulator_init(emulator_t* emulator) {
     emulator->cpu.read_bus = &emulator_read_bus;
     emulator->cpu.write_bus = &emulator_write_bus;
 
-    emulator_reset(emulator);
-
     // emulator->cpu.write_bus(emulator->cpu.bus, RST_START, 0x00);
     // emulator->cpu.write_bus(emulator->cpu.bus, RST_START + 1, 0xC0);
+
+    emulator_reset(emulator);
 }
 
 void emulator_load(emulator_t* emulator, const char* path) {
@@ -63,15 +63,15 @@ void emulator_load(emulator_t* emulator, const char* path) {
     size_t size = ftell(file);
     rewind(file);
 
-    if(fread(emulator->mem + 0xC000, sizeof(u8), MEM_SIZE, file) != size) {
+    if(fread(emulator->mem, sizeof(u8), MEM_SIZE, file) != size) {
         fprintf(stderr, "Error reading program");
         fclose(file);
         return;
     }
 
-    fseek(file, 0x10, SEEK_SET);
-
     // == NESTEST ==
+
+    // fseek(file, 0x10, SEEK_SET);
 
     // size_t size = 0x4000;
     // u8 buf[0x4000];
@@ -84,7 +84,7 @@ void emulator_load(emulator_t* emulator, const char* path) {
     // memcpy(emulator->mem + 0x8000, buf, size);
     // memcpy(emulator->mem + 0xC000, buf, size);
 
-    // fclose(file);
+    fclose(file);
 }
 
 void emulator_run(emulator_t* emulator) {
