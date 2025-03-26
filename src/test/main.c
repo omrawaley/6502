@@ -154,7 +154,7 @@ void test_all_opcodes(emulator_t* emulator) {
     char path[32];
     for(u16 i = 0; i <= 0xFF; i++)
     {
-        snprintf(path, 32, "SingleStepTests/%02x.json", i);
+        snprintf(path, 32, "SingleStepTestsNES/%02x.json", i);
 
         u8 res = test_opcode_single(emulator, path, (u16)i);
 
